@@ -11,38 +11,62 @@
       height: 100%;
       font-family: 'Open Sans', sans-serif;
       background: linear-gradient(135deg, #ffe6f0, #ffe0ec);
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 30px 25px;
+      padding: 20px;
+      position: relative;
     }
-    #canvas-bg {
+    #overlay {
       position: fixed;
       top: 0; left: 0;
       width: 100vw;
       height: 100vh;
-      z-index: 0;
+      background: rgba(0,0,0,0.15); /* véu escuro sutil */
       pointer-events: none;
+      z-index: 0;
+      backdrop-filter: blur(3px);
+    }
+    #canvas-bg, #canvas-stars {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
     }
     #app {
       position: relative;
       max-width: 600px;
-      width: 100%;
+      max-height: 85vh;  /* limitar altura para não ultrapassar a viewport */
+      overflow-y: auto;  /* rolagem interna se passar */
       background: rgba(255, 255, 255, 0.92);
       border-radius: 20px;
-      padding: 40px 50px;
+      padding: 30px 40px 40px 40px; /* padding inferior maior para legenda */
       box-shadow: 0 8px 25px rgba(230, 0, 115, 0.3);
       text-align: center;
       z-index: 2;
-      /* Remova overflow hidden se existir */
     }
-    h1 {
+    #animatedTitle {
       font-family: 'Pacifico', cursive;
-      color: #e60073;
-      font-size: 3rem;
+      color: #e60073cc;
+      font-size: 2.4rem;
       margin-bottom: 25px;
+      font-weight: normal;
+      user-select: none;
+      animation: swayFade 4s ease-in-out infinite;
+      text-align: center;
+    }
+    @keyframes swayFade {
+      0%, 100% {
+        opacity: 1;
+        transform: translateX(0) rotate(0deg);
+      }
+      50% {
+        opacity: 0.85;
+        transform: translateX(5px) rotate(2deg);
+      }
     }
     button {
       background-color: #ff4da6;
@@ -66,42 +90,27 @@
       white-space: pre-wrap;
       text-align: left;
       display: none;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
     }
-    /* Botão extra com fade */
     #extraMessageBtn {
       display: none;
-      opacity: 0;
-      transition: opacity 0.6s ease;
-    }
-    #extraMessageBtn.show {
-      display: inline-block;
-      opacity: 1;
     }
     .image-section {
       margin-top: 30px;
       display: none;
       animation: fadeIn 1s ease-in-out forwards;
-      overflow: visible;
-      text-align: center;
     }
     .pulseira-img {
       max-width: 100%;
-      max-height: 400px; /* Limita altura para não ficar gigante */
-      height: auto;
+      height: auto; /* manter proporção */
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-      display: block;
-      margin: 0 auto;
-      object-fit: contain;
     }
     .image-caption {
       margin-top: 15px;
       font-size: 1.2rem;
       color: #e60073;
       font-style: italic;
-      white-space: normal;
+      padding-bottom: 10px; /* garantir espaçamento abaixo */
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
@@ -110,24 +119,26 @@
   </style>
 </head>
 <body>
-<canvas id="canvas-bg"></canvas>
-<div id="app">
-  <h1>Oi, amor ❤️</h1>
-  <button id="startBtn">💖 Clique aqui</button>
+  <div id="overlay"></div>
+  <canvas id="canvas-bg"></canvas>
+  <canvas id="canvas-stars"></canvas>
 
-  <div id="letter"></div>
-  <button id="extraMessageBtn">📝 Tenho algo pra te mostrar...</button>
+  <div id="app">
+    <h1 id="animatedTitle">Gosto muito de você e tô com saudade ❤️</h1>
+    <button id="startBtn">💖 Clique aqui</button>
 
-  <div class="image-section" id="imageSection">
-    <img src="foto-pulseira.jpg" alt="Pulseira com a letra M" class="pulseira-img" />
-    <p class="image-caption">Tô aqui, com você sempre no pulso e no pensamento.<br>
-    Essa pulseira carrega mais do que uma letra… carrega o quanto você é importante pra mim.</p>
+    <div id="letter"></div>
+    <button id="extraMessageBtn">📝 Tenho algo pra te mostrar...</button>
+
+    <div class="image-section" id="imageSection">
+      <img src="foto-pulseira.jpg" alt="Pulseira com a letra M" class="pulseira-img" />
+      <p class="image-caption">Tô aqui, com você sempre no pulso e no pensamento.<br>
+      Essa pulseira carrega mais do que uma letra… carrega o quanto você é importante pra mim.</p>
+    </div>
   </div>
-</div>
 
-<script>
-// Texto com efeito de digitação
-const message = `Tá aqui uma saudade enorme que não dá pra segurar.
+  <script>
+    const message = `Tá aqui uma saudade enorme que não dá pra segurar.
 
 Queria estar aí do seu lado agora, te ver, te abraçar e não largar mais.
 
@@ -139,89 +150,152 @@ Não vejo a hora da gente se encontrar de novo e viver momentos que só a gente 
 
 Até lá, fica guardado aqui no meu coração o desejo de te ver sorrir e sentir seu abraço. 💖`;
 
-const startBtn = document.getElementById("startBtn");
-const letterDiv = document.getElementById("letter");
-const extraBtn = document.getElementById("extraMessageBtn");
-const imageSection = document.getElementById("imageSection");
+    const startBtn = document.getElementById("startBtn");
+    const letterDiv = document.getElementById("letter");
+    const extraBtn = document.getElementById("extraMessageBtn");
+    const imageSection = document.getElementById("imageSection");
 
-startBtn.onclick = () => {
-  startBtn.style.display = "none";
-  letterDiv.style.display = "block";
-  typeLetter(message, letterDiv, () => {
-    setTimeout(() => {
-      extraBtn.classList.add('show');
-    }, 1000);
-  });
-};
+    startBtn.onclick = () => {
+      startBtn.style.display = "none";
+      letterDiv.style.display = "block";
+      typeLetter(message, letterDiv, () => {
+        setTimeout(() => {
+          extraBtn.style.display = "inline-block";
+        }, 1000);
+      });
+    };
 
-extraBtn.onclick = () => {
-  imageSection.style.display = "block";
-  extraBtn.style.display = "none";
-};
+    extraBtn.onclick = () => {
+      imageSection.style.display = "block";
+      extraBtn.style.display = "none";
+    };
 
-function typeLetter(text, container, callback) {
-  let index = 0;
-  const interval = setInterval(() => {
-    container.textContent += text.charAt(index);
-    index++;
-    if (index >= text.length) {
-      clearInterval(interval);
-      if (callback) callback();
+    function typeLetter(text, container, callback) {
+      let index = 0;
+      const interval = setInterval(() => {
+        container.textContent += text.charAt(index);
+        index++;
+        if (index >= text.length) {
+          clearInterval(interval);
+          if (callback) callback();
+        }
+      }, 35);
     }
-  }, 35);
-}
 
-// Corações flutuantes
-const canvas = document.getElementById("canvas-bg");
-const ctx = canvas.getContext("2d");
-let w, h;
-function resize() {
-  w = canvas.width = window.innerWidth;
-  h = canvas.height = window.innerHeight;
-}
-window.addEventListener("resize", resize);
-resize();
+    // Corações flutuantes
+    const canvas = document.getElementById("canvas-bg");
+    const ctx = canvas.getContext("2d");
+    let w, h;
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
 
-class Heart {
-  constructor() { this.reset(); }
-  reset() {
-    this.x = Math.random() * w;
-    this.y = h + Math.random() * 100;
-    this.size = 8 + Math.random() * 12;
-    this.speed = 0.3 + Math.random() * 0.6;
-    this.angle = Math.random() * Math.PI * 2;
-    this.angleSpeed = 0.01 + Math.random() * 0.02;
-    this.opacity = 0.5 + Math.random() * 0.5;
-  }
-  draw() {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.angle);
-    ctx.globalAlpha = this.opacity;
-    ctx.fillStyle = "#ff4da6";
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(this.size / 2, -this.size / 2, this.size, this.size / 3, 0, this.size);
-    ctx.bezierCurveTo(-this.size, this.size / 3, -this.size / 2, -this.size / 2, 0, 0);
-    ctx.fill();
-    ctx.restore();
-  }
-  update() {
-    this.y -= this.speed;
-    this.angle += this.angleSpeed;
-    if (this.y + this.size < 0) this.reset();
-  }
-}
-const hearts = Array.from({ length: 40 }, () => new Heart());
-function animate() {
-  ctx.clearRect(0, 0, w, h);
-  hearts.forEach(h => {
-    h.update();
-    h.draw();
-  });
-  requestAnimationFrame(animate);
-}
-animate();
-</script>
+    class Heart {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * w;
+        this.y = h + Math.random() * 100;
+        this.size = 8 + Math.random() * 12;
+        this.speed = 0.3 + Math.random() * 0.6;
+        this.angle = Math.random() * Math.PI * 2;
+        this.angleSpeed = 0.01 + Math.random() * 0.02;
+        this.opacity = 0.5 + Math.random() * 0.5;
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = "#ff4da6";
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(this.size / 2, -this.size / 2, this.size, this.size / 3, 0, this.size);
+        ctx.bezierCurveTo(-this.size, this.size / 3, -this.size / 2, -this.size / 2, 0, 0);
+        ctx.fill();
+        ctx.restore();
+      }
+      update() {
+        this.y -= this.speed;
+        this.angle += this.angleSpeed;
+        if (this.y + this.size < 0) this.reset();
+      }
+    }
+    const hearts = Array.from({ length: 40 }, () => new Heart());
+
+    // Estrelas no fundo
+    const starsCanvas = document.getElementById("canvas-stars");
+    const starsCtx = starsCanvas.getContext("2d");
+    let starsW, starsH;
+
+    function resizeStars() {
+      starsW = starsCanvas.width = window.innerWidth;
+      starsH = starsCanvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeStars);
+    resizeStars();
+
+    class Star {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * starsW;
+        this.y = Math.random() * starsH;
+        this.radius = Math.random() * 1.2 + 0.5;
+        this.opacity = Math.random();
+        this.opacitySpeed = 0.005 + Math.random() * 0.02;
+        this.increasing = Math.random() > 0.5;
+      }
+      draw() {
+        starsCtx.beginPath();
+        starsCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        starsCtx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+        starsCtx.shadowColor = 'white';
+        starsCtx.shadowBlur = 5;
+        starsCtx.fill();
+      }
+      update() {
+        if (this.increasing) {
+          this.opacity += this.opacitySpeed;
+          if (this.opacity >= 1) {
+            this.opacity = 1;
+            this.increasing = false;
+          }
+        } else {
+          this.opacity -= this.opacitySpeed;
+          if (this.opacity <= 0) {
+            this.opacity = 0;
+            this.increasing = true;
+          }
+        }
+      }
+    }
+
+    const stars = Array.from({ length: 80 }, () => new Star());
+
+    function animateStars() {
+      starsCtx.clearRect(0, 0, starsW, starsH);
+      stars.forEach(star => {
+        star.update();
+        star.draw();
+      });
+      requestAnimationFrame(animateStars);
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, w, h);
+      hearts.forEach(h => {
+        h.update();
+        h.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+    animateStars();
+  </script>
 </body>
 </html>
