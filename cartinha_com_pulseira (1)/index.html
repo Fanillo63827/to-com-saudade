@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Para Você 💌</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Pacifico&family=Open+Sans&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Open Sans', sans-serif;
+      background: linear-gradient(135deg, #ffe6f0, #ffe0ec);
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    #canvas-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+    #app {
+      position: relative;
+      max-width: 600px;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 20px;
+      padding: 30px 40px;
+      box-shadow: 0 8px 25px rgba(230, 0, 115, 0.3);
+      text-align: center;
+      z-index: 2;
+    }
+    h1 {
+      font-family: 'Pacifico', cursive;
+      color: #e60073;
+      font-size: 3rem;
+      margin-bottom: 25px;
+    }
+    button {
+      background-color: #ff4da6;
+      border: none;
+      border-radius: 30px;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      color: white;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: transform 0.2s ease;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    #letter {
+      margin-top: 30px;
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.5rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      text-align: left;
+      display: none;
+    }
+    #extraMessageBtn {
+      display: none;
+    }
+    .image-section {
+      margin-top: 30px;
+      display: none;
+      animation: fadeIn 1s ease-in-out forwards;
+    }
+    .pulseira-img {
+      max-width: 90%;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
+    .image-caption {
+      margin-top: 15px;
+      font-size: 1.2rem;
+      color: #e60073;
+      font-style: italic;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas-bg"></canvas>
+<div id="app">
+  <h1>Oi, amor ❤️</h1>
+  <button id="startBtn">💖 Clique aqui</button>
+
+  <div id="letter"></div>
+  <button id="extraMessageBtn">📝 Tenho algo pra te mostrar...</button>
+
+  <div class="image-section" id="imageSection">
+    <img src="foto-pulseira.jpg" alt="Pulseira com a letra M" class="pulseira-img" />
+    <p class="image-caption">Tô aqui, com você sempre no pulso e no pensamento.<br>
+    Essa pulseira carrega mais do que uma letra… carrega o quanto você é importante pra mim.</p>
+  </div>
+</div>
+
+<script>
+// Texto com efeito de digitação
+const message = `Tá aqui uma saudade enorme que não dá pra segurar.
+
+Queria estar aí do seu lado agora, te ver, te abraçar e não largar mais.
+
+Cada minuto longe parece uma eternidade, e só consigo pensar no quanto você faz falta pra mim.
+
+Você é aquela pessoa que deixa tudo melhor, só de estar por perto.
+
+Não vejo a hora da gente se encontrar de novo e viver momentos que só a gente entende.
+
+Até lá, fica guardado aqui no meu coração o desejo de te ver sorrir e sentir seu abraço. 💖`;
+
+const startBtn = document.getElementById("startBtn");
+const letterDiv = document.getElementById("letter");
+const extraBtn = document.getElementById("extraMessageBtn");
+const imageSection = document.getElementById("imageSection");
+
+startBtn.onclick = () => {
+  startBtn.style.display = "none";
+  letterDiv.style.display = "block";
+  typeLetter(message, letterDiv, () => {
+    setTimeout(() => {
+      extraBtn.style.display = "inline-block";
+    }, 1000);
+  });
+};
+
+extraBtn.onclick = () => {
+  imageSection.style.display = "block";
+  extraBtn.style.display = "none";
+};
+
+function typeLetter(text, container, callback) {
+  let index = 0;
+  const interval = setInterval(() => {
+    container.textContent += text.charAt(index);
+    index++;
+    if (index >= text.length) {
+      clearInterval(interval);
+      if (callback) callback();
+    }
+  }, 35);
+}
+
+// Corações flutuantes
+const canvas = document.getElementById("canvas-bg");
+const ctx = canvas.getContext("2d");
+let w, h;
+function resize() {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resize);
+resize();
+
+class Heart {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * w;
+    this.y = h + Math.random() * 100;
+    this.size = 8 + Math.random() * 12;
+    this.speed = 0.3 + Math.random() * 0.6;
+    this.angle = Math.random() * Math.PI * 2;
+    this.angleSpeed = 0.01 + Math.random() * 0.02;
+    this.opacity = 0.5 + Math.random() * 0.5;
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.angle);
+    ctx.globalAlpha = this.opacity;
+    ctx.fillStyle = "#ff4da6";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(this.size / 2, -this.size / 2, this.size, this.size / 3, 0, this.size);
+    ctx.bezierCurveTo(-this.size, this.size / 3, -this.size / 2, -this.size / 2, 0, 0);
+    ctx.fill();
+    ctx.restore();
+  }
+  update() {
+    this.y -= this.speed;
+    this.angle += this.angleSpeed;
+    if (this.y + this.size < 0) this.reset();
+  }
+}
+const hearts = Array.from({ length: 40 }, () => new Heart());
+function animate() {
+  ctx.clearRect(0, 0, w, h);
+  hearts.forEach(h => {
+    h.update();
+    h.draw();
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
